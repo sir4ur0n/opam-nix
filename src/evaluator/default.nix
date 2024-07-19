@@ -458,6 +458,7 @@ in rec {
       optionalRev = optionalAttrs hasRev { rev = ref; };
       refsOrWarn = if hasRef && !isRev ref then {
         inherit ref;
+        allRefs = true;
       } else if lib.versionAtLeast nixVersion "2.4" then {
         allRefs = true;
       } else
@@ -476,7 +477,14 @@ in rec {
         "[opam-nix] a git dependency without an explicit sha1 is not supported in pure evaluation mode; try with --impure"
       else path;
 
-  fetchImpure = url: project:
+  # Rewrite a `git://` url into a `git+ssh` one
+  rewriteGitUrl = url:
+    if lib.strings.hasPrefix "git://" url then
+      "git+ssh://" + (builtins.substring 6 (-1) (builtins.replaceStrings [":"] ["/"] url))
+    else url;
+
+  fetchImpure = url_: project:
+    let url = rewriteGitUrl url_; in
     let splitUrl = splitString "+" (head (splitString ":" url)); in
     let proto = if length splitUrl > 1 then head splitUrl else null; in
     if proto == "git" then fetchGitURL url
