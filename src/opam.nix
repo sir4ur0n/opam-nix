@@ -478,7 +478,10 @@ in rec {
         let
           inherit (splitNameVer (head dep)) name version;
         in
-          filterOpamRepo { ${name} = version; } (makeOpamRepo (fetchImpure (last dep) project))) pkgdef.pin-depends
+        let src =
+          builtins.addErrorContext "while fetching the pin depend ${name} of ${builtins.toJSON pkgdef}" (fetchImpure (last dep) project);
+        in
+          (filterOpamRepo { ${name} = version; } (makeOpamRepo src))) pkgdef.pin-depends
     else
       [ ];
 

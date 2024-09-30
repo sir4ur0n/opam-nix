@@ -473,8 +473,9 @@ in rec {
       };
     in
       if !hasRev && !isImpure then
+        builtins.addErrorContext "while fetching from ${fullUrl}" (
         throw
-        "[opam-nix] a git dependency without an explicit sha1 is not supported in pure evaluation mode; try with --impure"
+        "[opam-nix] a git dependency without an explicit sha1 is not supported in pure evaluation mode; try with --impure")
       else path;
 
   # Rewrite a `git://` url into a `git+ssh` one
@@ -499,6 +500,7 @@ in rec {
     else throw "[opam-nix] Protocol '${proto}' is not yet supported";
 
   getUrl = pkgs: pkgdef:
+    let implem =
     let
       hashes = if pkgdef.url.section ? checksum then
         if isList pkgdef.url.section.checksum then
@@ -517,5 +519,6 @@ in rec {
       else
         pkgdef.src or pkgs.pkgsBuildBuild.emptyDirectory;
     in { inherit archive src; };
+    in builtins.addErrorContext "while fetching the source of package ${pkgdef.name}" implem;
 
 }
