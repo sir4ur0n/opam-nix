@@ -83,8 +83,9 @@ let
     if sourceMap ? ${def.name} then
       def // { src = sourceMap.${def.name}; }
     else if def ? src then
-      def // {
-        src = (bootstrapPackages.fetchgit { inherit (def.src) url rev hash; })
+      def // 
+      {
+        src = (builtins.fetchGit ({ inherit (def.src) url rev; }))
           + def.src.subdir;
       }
     else
